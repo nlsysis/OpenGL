@@ -12,6 +12,8 @@
 
 #include "Shader.h"
 #include "Texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 int main(void)
 {
@@ -55,6 +57,9 @@ int main(void)
 		 2, 3, 0
 		};
 
+		GLCall(glEnable(GL_BLEND));
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 		unsigned int vao;
 		GLCall(glGenVertexArrays(1, &vao)); // Create our Vertex Array Object  
 		GLCall(glBindVertexArray(vao)); // Bind our Vertex Array Object so we can use it  
@@ -70,6 +75,7 @@ int main(void)
 	
 		IndexBuffer ib(indices, 6);
 
+		glm::mat4 proj = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f);
 		///shader
 		Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
@@ -80,7 +86,7 @@ int main(void)
 		Texture texture("res/texture/index.png");
 		texture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
-
+		shader.SetUniformMat4f("u_MVP", proj);
 		///Unbind index buffer and fragment buffer
 		va.UnBind();
 		shader.UnBind();
