@@ -23,6 +23,7 @@ void Renderer::Clear() const
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
+
 void Renderer::Draw(const VertexArray & va, const IndexBuffer & ib, const Shader & shader)
 {
 	shader.Bind();

@@ -19,6 +19,10 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include "tests/TestClearColor.h"
+#include "tests/Test.h"
+
+
 int main(void)
 {
 	GLFWwindow* window;
@@ -106,21 +110,19 @@ int main(void)
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 
-		float r = 0.0f;
-		float increment = 0.05f;
-
 		bool show_demo_window = true;
 		bool show_another_window = false;
-		ImVec4 clear_color = ImVec4(0.45f, 100.05f, 0.60f, 1.00f);
 
-		glm::vec3 translationA = glm::vec3(100.0f, 100.0f, 0.0f);
-		glm::vec3 translationB = glm::vec3(200.0f, 200.0f, 0.0f);
+		test::Test* currentTest = nullptr;
+		test::TestMenu* testMenu = new test::TestMenu(currentTest);
+		currentTest = testMenu;
 
-		glm::mat4 model, mvp;
-
+		testMenu->RegisterTest<test::TestClearColor>("Clear color");
+		
 		///loop until the use close the window
 		while (!glfwWindowShouldClose(window))
 		{
+			GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 			///Render here
 			renderer.Clear();
 
@@ -128,32 +130,17 @@ int main(void)
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
-			
+			if (currentTest)
 			{
-				model = glm::translate(glm::mat4(1.0f), translationA);
-				mvp = proj * view * model;
-				shader.Bind();
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
-		
-			{
-				model = glm::translate(glm::mat4(1.0f), translationB);
-				mvp = proj * view * model;
-				shader.Bind();
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
-
-			{
-				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-				ImGui::Checkbox("Another Window", &show_another_window);
-
-				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 500.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-				ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 500.0f);
+				currentTest->OnUpdate(0.0f);
+				currentTest->OnRender();
+				ImGui::Begin("Test");
+				if (currentTest != testMenu && ImGui::Button("<-"))
+				{
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->OnImGuiRender();
 				ImGui::End();
 			}
 
@@ -168,6 +155,9 @@ int main(void)
 			glfwPollEvents();
 		}
 		//glDeleteProgram(shader);
+		delete currentTest;
+		if (currentTest != testMenu)
+			delete testMenu;
 	}
 	
 	// Cleanup
